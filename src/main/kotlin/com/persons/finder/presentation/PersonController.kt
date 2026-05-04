@@ -1,42 +1,59 @@
 package com.persons.finder.presentation
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import com.persons.finder.domain.services.LocationsService
+import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.presentation.dto.CreatePersonRequest
+import com.persons.finder.presentation.dto.NearbyPersonResponse
+import com.persons.finder.presentation.dto.PersonResponse
+import com.persons.finder.presentation.dto.UpdateLocationRequest
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("api/v1/persons")
-class PersonController @Autowired constructor() {
+class PersonController(
+    private val personsService: PersonsService,
+    private val locationsService: LocationsService
+) {
 
-    /*
-        TODO PUT API to update/create someone's location using latitude and longitude
-        (JSON) Body
-     */
-
-    /*
-        TODO POST API to create a 'person'
-        (JSON) Body and return the id of the created entity
-    */
-
-    /*
-        TODO GET API to retrieve people around query location with a radius in KM, Use query param for radius.
-        TODO API just return a list of persons ids (JSON)
-        // Example
-        // John wants to know who is around his location within a radius of 10km
-        // API would be called using John's id and a radius 10km
-     */
-
-    /*
-        TODO GET API to retrieve a person or persons name using their ids
-        // Example
-        // John has the list of people around them, now they need to retrieve everybody's names to display in the app
-        // API would be called using person or persons ids
-     */
-
-    @GetMapping("")
-    fun getExample(): String {
-        return "Hello Example"
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createPerson(@RequestBody req: CreatePersonRequest): PersonResponse {
+        require(req.name.isNotBlank()) { "name must not be blank" }
+        require(req.jobTitle.isNotBlank()) { "jobTitle must not be blank" }
+        require(req.hobbies.isNotEmpty()) { "hobbies must not be empty" }
+        require(req.latitude in -90.0..90.0) { "latitude must be between -90 and 90" }
+        require(req.longitude in -180.0..180.0) { "longitude must be between -180 and 180" }
+        return personsService.createPerson(req.name, req.jobTitle, req.hobbies, req.latitude, req.longitude).toResponse()
     }
 
+    @PutMapping("/{id}/location")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateLocation(@PathVariable id: Long, @RequestBody req: UpdateLocationRequest) {
+        require(req.latitude in -90.0..90.0) { "latitude must be between -90 and 90" }
+        require(req.longitude in -180.0..180.0) { "longitude must be between -180 and 180" }
+        locationsService.updateLocation(id, req.latitude, req.longitude)
+    }
+
+    @GetMapping("/nearby")
+    fun findNearby(
+        @RequestParam lat: Double,
+        @RequestParam lon: Double,
+        @RequestParam radius: Double
+    ): List<NearbyPersonResponse> {
+        require(lat in -90.0..90.0) { "lat must be between -90 and 90" }
+        require(lon in -180.0..180.0) { "lon must be between -180 and 180" }
+        require(radius > 0) { "radius must be greater than 0" }
+        return locationsService.findNearby(lat, lon, radius).map {
+            NearbyPersonResponse(it.person.toResponse(), it.distanceKm)
+        }
+    }
+
+    private fun com.persons.finder.data.Person.toResponse() = PersonResponse(
+        id = id,
+        name = name,
+        jobTitle = jobTitle,
+        hobbies = hobbiesList(),
+        bio = bio
+    )
 }

@@ -16,7 +16,7 @@ Add the postgres JDBC driver dependency to build.gradle.kts and remove the H2 on
 
 Two tables get created from the JPA entities:
 
-The persons table needs id (auto-generated), name, job_title, hobbies (stored as plain text, comma-separated (for now fine in single column)), and bio (nullable text, populated by the AI call).
+The persons table needs id (auto-generated), name, job_title, hobbies (stored as plain text, comma-separated), and bio (nullable text, populated by the AI call).
 
 The locations table uses reference_id as both the primary key and logical foreign key back to persons. It has latitude and longitude as doubles. Put a composite index on latitude and longitude — this is the column pair we filter on in the nearby query and it matters a lot at scale.
 

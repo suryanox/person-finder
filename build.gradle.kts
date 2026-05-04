@@ -21,7 +21,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.postgresql:postgresql:42.7.3")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 }
 
 tasks.withType<KotlinCompile> {
@@ -33,4 +35,13 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	testLogging {
+		events("passed", "failed", "skipped")
+		afterSuite(KotlinClosure2({ desc: TestDescriptor, result: TestResult ->
+			if (desc.parent == null) {
+				println("\nResults: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)")
+			}
+		}))
+	}
 }
+

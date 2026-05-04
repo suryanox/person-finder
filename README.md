@@ -2,8 +2,6 @@
 
 Welcome to the **Persons Finder** backend challenge! This project simulates the backend for a mobile app that helps users find people around them.
 
-**Context:** At our company, we believe AI is a tool, not a replacement. We want to see how you leverage AI to code faster, think deeper, and build secure systems.
-
 ---
 
 ## 📌 Core Requirements

@@ -21,5 +21,7 @@ class Person(
     @Column(columnDefinition = "TEXT")
     var bio: String? = null
 ) {
+    constructor() : this(0, "", "", "")
+
     fun hobbiesList(): List<String> = hobbies.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 }

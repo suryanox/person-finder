@@ -16,4 +16,6 @@ class Location(
 
     @Column(nullable = false)
     var longitude: Double
-)
+) {
+    constructor() : this(0, 0.0, 0.0)
+}
