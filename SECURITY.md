@@ -46,3 +46,8 @@ I use a two-step approach because:
 - Detects any non english injections.
 
 This defense-in-depth approach reduces prompt injection risk and improves safety when interacting with external LLMs.
+
+
+## What I would do differently for a banking app
+
+For a banking-grade system, I would never send raw PII (name, location, identifiers) to any external LLM. Instead, I would introduce a strict PII redaction and tokenization layer that replaces sensitive data with irreversible tokens before any AI call. All LLM interactions would go through an internal AI gateway enforcing policy checks, sanitization, and full audit logging. I would prefer self-hosted or VPC-isolated models instead of third-party APIs. User input would be heavily constrained to structured, non-identifiable features only. LLM outputs would be treated as untrusted and validated before use in business logic to ensure compliance and security.

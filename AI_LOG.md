@@ -1,62 +1,85 @@
-## Overview  
-I followed a spec-driven development approach for this project using `spec.md` as the source of truth. AI tools were used throughout for scaffolding, boilerplate generation, and implementation acceleration, while core architectural decisions and fixes were handled manually.
+## Overview
+
+This project was built using a spec-driven development approach, with `spec.md` serving as the single source of truth. AI tools were used extensively for scaffolding, boilerplate generation, and accelerating implementation and adding unit tests. However, all architectural decisions, validations, and production-grade fixes were handled manually to ensure correctness, security, and maintainability.
 
 ---
 
 ## Phase 1 — Database Setup
 
-- AI generated initial PostgreSQL Docker setup and Spring Boot configuration.
-- AI suggested schema for `persons` and `locations` tables.
+### AI Contributions
+- Generated initial PostgreSQL Docker configuration.
+- Suggested baseline schema for `person` and `location` tables.
+- Provided initial Spring Boot datasource configuration.
 
-Fixes:
-- Corrected table naming from plural (`persons`, `locations`) to singular (`person`, `location`) for better domain consistency and cleaner JPA entity mapping alignment.
-- Fixed nullability issues where AI defaulted all columns as nullable; enforced NOT NULL constraints for core domain fields (name, jobTitle, latitude, longitude) to ensure data integrity.
-- Added missing composite index on (latitude, longitude) required for efficient bounding-box queries in nearby search, avoiding full table scans at scale.
+### Manual Fixes & Improvements
+- Standardized table naming from plural (`persons`, `locations`) to singular (`person`, `location`) to align with domain modeling and JPA conventions.
+- Enforced strict `NOT NULL` constraints on core fields:
+  - `name`
+  - `jobTitle`
+  - `latitude`
+  - `longitude`
+  This ensured data integrity at the persistence layer.
+- Introduced composite index on `(latitude, longitude)` to support efficient geo-based bounding box queries and prevent full table scans under load.
 
 ---
 
 ## Phase 2 — Domain Model
 
-- AI generated initial JPA entities, repositories, and port interfaces.
-- AI partially aligned with domain structure but missed proper separation of domain concerns.
+### AI Contributions
+- Generated initial JPA entities and repository interfaces.
+- Created basic domain structure for person and location management.
 
-Fixes:
-- Added missing `PersonNotFoundException` manually after AI missed clear domain exception handling.
-- Added missing `PromptInjectionException` manually after AI missed clear domain exception handling
-- Refined repository contract for bounding-box queries to properly support spatial lookup requirements in nearby search.
-
----
-
-## Phase 3 — Infrastructure
-
-- AI provided a basic PromptSanitizer using simple regex-based filtering.
-- AI generated a minimal one-line prompt structure for LLM calls.
-- AI assisted in OpenAI integration via RestTemplate.
-
-Fixes:
-- Enhanced PromptSanitizer significantly with broader injection detection patterns and improved handling of real-world prompt injection edge cases.
-- Redesigned prompt structure from a simple one-liner into a strict system + data separation format, explicitly enforcing instruction/data boundaries.
-- Rewrote delimiter handling regex logic after edge cases were discovered where structured prompt tokens were not properly neutralized.
+### Manual Fixes & Improvements
+- Introduced missing domain exceptions:
+  - `PersonNotFoundException`
+  - `PromptInjectionException`
+- Improved domain boundary separation between infrastructure and business logic.
+- Refined repository contracts to properly support geospatial querying for nearby-person lookups.
 
 ---
 
-## Phase 4 — Services
+## Phase 3 — Infrastructure Layer
 
-- AI generated initial service layer with mixed responsibilities between person and location logic.
+### AI Contributions
+- Implemented initial `PromptSanitizer` using regex-based filtering.
+- Generated basic LLM prompt structure (single-string format).
+- Assisted in OpenAI-style integration using `RestTemplate`.
 
-Fixes:
-- Separated concerns by decoupling person management and location handling, improving service clarity and maintainability.
-- Extracted Haversine distance calculation into a dedicated utility class to improve testability and avoid embedding mathematical logic inside service flow.
-- Introduced a global exception handler using `@ControllerAdvice` for consistent error handling across the API.
-- Standardized error responses by mapping exceptions into a consistent API format suitable for backend-for-frontend (BFF) usage, instead of exposing raw application errors.
+### Manual Fixes & Improvements
+- Hardened `PromptSanitizer` with expanded injection detection patterns covering real-world adversarial prompts.
+- Replaced weak single-string prompt design with structured system/user separation to enforce instruction–data isolation.
+- Improved delimiter sanitization logic to handle encoded prompt injection attempts and structured token bypasses.
+- Strengthened resilience against prompt injection edge cases not covered by initial AI implementation.
+
+---
+
+## Phase 4 — Service Layer
+
+### AI Contributions
+- Generated initial service layer combining person and location logic.
+- Provided basic implementation for nearby search and bio generation flow.
+
+### Manual Fixes & Improvements
+- Separated responsibilities into distinct services:
+  - `PersonsService`
+  - `LocationsService`
+- Extracted Haversine distance calculation into a dedicated utility class for reuse and testability.
+- Introduced global exception handling using `@ControllerAdvice`.
+- Standardized API error responses for consistent BFF consumption instead of exposing raw stack traces.
+- Improved logging strategy for AI-related failures to ensure traceability without leaking sensitive prompt data.
+- Fixed missing failure propagation in PromptSanitizer where sanitization violations were silently ignored instead of throwing proper exceptions.
+- Corrected AI-generated persistence logic where `Person` entity was incorrectly used for inserts; replaced with proper `InsertPersonRow` to avoid unintended ID handling and JPA entity misuse.
 
 ---
 
 ## Summary
 
-AI was used effectively for scaffolding and accelerating initial development, but multiple areas required manual correction, particularly around:
-- domain modeling clarity
-- prompt injection safety
-- service separation of concerns
-- database integrity constraints
-- production-grade error handling
+AI was effective in accelerating initial scaffolding and reducing boilerplate effort. However, significant manual intervention was required in the following areas:
+
+- Domain modeling correctness and consistency
+- Prompt injection security hardening
+- Service boundary separation
+- Database schema integrity and indexing strategy
+- Production-grade error handling and API consistency
+
+Overall, AI acted as a productivity multiplier, while architectural correctness and security were enforced manually.
