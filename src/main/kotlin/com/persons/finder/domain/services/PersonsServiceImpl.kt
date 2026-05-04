@@ -20,18 +20,44 @@ class PersonsServiceImpl(
 
     private val log = LoggerFactory.getLogger(PersonsServiceImpl::class.java)
 
-    override fun createPerson(name: String, jobTitle: String, hobbies: List<String>, latitude: Double, longitude: Double): Person {
+    override fun createPerson(
+        name: String,
+        jobTitle: String,
+        hobbies: List<String>,
+        latitude: Double,
+        longitude: Double
+    ): Person {
+
+        val hobbiesText = hobbies.joinToString(", ")
+
         val sanitizedJobTitle = promptSanitizer.sanitize(jobTitle)
-        val sanitizedHobbies = promptSanitizer.sanitize(hobbies.joinToString(", "))
-        log.info("Generating bio for jobTitle='{}' hobbies='{}'", sanitizedJobTitle, sanitizedHobbies)
-        val bio = runCatching {
-            aiService.generateBio(sanitizedJobTitle, sanitizedHobbies)
+        val sanitizedHobbies = promptSanitizer.sanitize(hobbiesText)
+
+        log.info("Generating bio for jobTitle='{}', hobbies='{}'", sanitizedJobTitle, sanitizedHobbies)
+
+        val bio = generateBioSafely(sanitizedJobTitle, sanitizedHobbies)
+
+        log.info("Bio result: {}", bio ?: "null (saving without bio)")
+
+        val savedPerson = personRepository.save(
+            InsertPersonRow(
+                name = name,
+                jobTitle = jobTitle,
+                hobbies = hobbiesText,
+                bio = bio
+            )
+        )
+
+        locationRepository.save(Location(savedPerson.id, latitude, longitude))
+
+        return savedPerson
+    }
+
+    private fun generateBioSafely(jobTitle: String, hobbies: String): String? {
+        return runCatching {
+            aiService.generateBio(jobTitle, hobbies)
         }.onFailure { ex ->
             log.error("Bio generation failed", ex)
         }.getOrNull()
-        log.info("Bio result: {}", bio ?: "null — saving person without bio")
-        val person = personRepository.save(InsertPersonRow(name = name, jobTitle = jobTitle, hobbies = hobbies.joinToString(","), bio = bio))
-        locationRepository.save(Location(person.id, latitude, longitude))
-        return person
     }
 }
