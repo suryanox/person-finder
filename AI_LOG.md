@@ -69,9 +69,7 @@ This project was built using a spec-driven development approach, with `spec.md` 
 - Improved logging strategy for AI-related failures to ensure traceability without leaking sensitive prompt data.
 - Fixed missing failure propagation in PromptSanitizer where sanitization violations were silently ignored instead of throwing proper exceptions.
 - Corrected AI-generated persistence logic where `Person` entity was incorrectly used for inserts; replaced with proper `InsertPersonRow` to avoid unintended ID handling and JPA entity misuse.
-
-
-- Refactoring with small functions and proper concerns.
+- Refactoring with small functions and proper concerns e.g: Validation moved out of controller
 
 ---
 

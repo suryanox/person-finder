@@ -19,18 +19,29 @@ class OpenAiService(
     private val objectMapper: ObjectMapper
 ) : AiService {
 
-    private val model = "gpt-5-nano"
-    private val systemPrompt = ClassPathResource("prompts/bio_system_prompt.txt").inputStream.bufferedReader().readText()
+    private val model = "granite4.1:3b"
+
+    private val systemPrompt =
+        ClassPathResource("prompts/bio_system_prompt.txt")
+            .inputStream.bufferedReader()
+            .readText()
 
     override fun generateBio(jobTitle: String, hobbies: String): String? {
+
         val headers = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON
             setBearerAuth(apiKey)
         }
 
-        val inputJson = objectMapper.writeValueAsString(mapOf("jobTitle" to jobTitle, "hobbies" to hobbies))
+        val inputJson = objectMapper.writeValueAsString(
+            mapOf(
+                "jobTitle" to jobTitle,
+                "hobbies" to hobbies
+            )
+        )
 
         val body = mapOf(
+            "stream" to false,
             "model" to model,
             "messages" to listOf(
                 mapOf("role" to "system", "content" to systemPrompt),
@@ -39,20 +50,22 @@ class OpenAiService(
         )
 
         val response = restTemplate.postForObject(
-            "$baseUrl/chat/completions",
+            "$baseUrl/chat",
             HttpEntity(body, headers),
             OpenAiResponse::class.java
-        ) ?: throw RuntimeException("No response from OpenAI")
+        ) ?: throw RuntimeException("No response from AI")
 
-        return response.choices.first().message.content.trim().ifBlank { null }
+        return response.message.content.trim().ifBlank { null }
     }
 
+    
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private data class OpenAiResponse(val choices: List<Choice>)
+    private data class OpenAiResponse(
+        val message: Message
+    )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private data class Choice(val message: Message)
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private data class Message(val content: String)
+    private data class Message(
+        val content: String
+    )
 }
