@@ -2,6 +2,7 @@ package com.persons.finder.presentation
 
 import com.persons.finder.domain.exceptions.PersonNotFoundException
 import com.persons.finder.presentation.dto.ErrorResponse
+import com.persons.finder.infrastructure.sanitization.PromptInjectionException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -43,5 +44,12 @@ class GlobalExceptionHandler {
     fun handleGeneral(ex: Exception): ErrorResponse {
         log.error("Unexpected error", ex)
         return ErrorResponse("Something went wrong")
+    }
+
+    @ExceptionHandler(PromptInjectionException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handlePromptInjection(ex: PromptInjectionException): ErrorResponse {
+        log.warn("Prompt injection attempt detected", ex)
+        return ErrorResponse("Invalid input")
     }
 }
