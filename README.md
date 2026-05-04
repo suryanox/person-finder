@@ -4,6 +4,19 @@ Welcome to the **Persons Finder** backend challenge! This project simulates the 
 
 ---
 
+## How to Run the Project
+
+### 1. Set Environment Variables
+
+Before starting the application, inject the LLM configuration into your environment:
+
+```bash
+export OPENAI_BASE_URL=http://localhost:11434/api
+export OPENAI_API_KEY=dummy
+
+make start
+```
+
 ## 📌 Core Requirements
 
 Implement a REST API (Kotlin/Java preferred) with the following endpoints:
