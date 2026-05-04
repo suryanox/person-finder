@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.bind.MethodArgumentNotValidException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -51,5 +52,18 @@ class GlobalExceptionHandler {
     fun handlePromptInjection(ex: PromptInjectionException): ErrorResponse {
         log.warn("Prompt injection attempt detected", ex)
         return ErrorResponse("Invalid input")
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleValidation(ex: MethodArgumentNotValidException): Map<String, Any?> {
+        val errors = ex.bindingResult.fieldErrors.associate {
+            it.field to it.defaultMessage
+        }
+
+        return mapOf(
+            "error" to "validation_failed",
+            "details" to errors
+        )
     }
 }

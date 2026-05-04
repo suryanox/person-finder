@@ -73,7 +73,7 @@ class PersonControllerTest {
                 .content(objectMapper.writeValueAsString(body))
         )
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.error").value("validation_failed"))
     }
 
     @Test
